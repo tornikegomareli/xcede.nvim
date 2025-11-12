@@ -1,0 +1,13 @@
+# Neovim
+doc/tags
+
+# macOS
+.DS_Store
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Project specific
+.xcrc
