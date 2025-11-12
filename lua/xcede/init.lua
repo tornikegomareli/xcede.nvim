@@ -324,44 +324,69 @@ local function setup_commands()
   end, { desc = "Show xcede.nvim debug information" })
 end
 
+--- Check if current directory is an Xcode/Swift project
+--- @return boolean
+local function is_xcode_project()
+  local cwd = vim.fn.getcwd()
+
+  -- Check for Package.swift
+  if vim.fn.filereadable(cwd .. "/Package.swift") == 1 then
+    return true
+  end
+
+  -- Check for *.xcodeproj
+  local xcodeproj = vim.fn.glob(cwd .. "/*.xcodeproj")
+  if xcodeproj ~= "" then
+    return true
+  end
+
+  -- Check for *.xcworkspace
+  local xcworkspace = vim.fn.glob(cwd .. "/*.xcworkspace")
+  if xcworkspace ~= "" then
+    return true
+  end
+
+  return false
+end
+
 --- Setup keymaps
 local function setup_keymaps()
-  if not config.options.keymaps or not config.options.filetypes then
+  if not config.options.keymaps then
     return
   end
 
-  vim.api.nvim_create_autocmd("FileType", {
-    pattern = config.options.filetypes,
-    callback = function()
-      local bufnr = vim.api.nvim_get_current_buf()
-      local opts = { silent = true, noremap = true, buffer = bufnr }
-      local keymaps = config.options.keymaps
+  -- Only set keymaps if we're in an Xcode/Swift project
+  if not is_xcode_project() then
+    return
+  end
 
-      if keymaps.build then
-        vim.keymap.set("n", keymaps.build, "<cmd>XcedeBuild<cr>", vim.tbl_extend("force", opts, { desc = "Build Project" }))
-      end
+  -- Set global keymaps so they work from any buffer
+  local opts = { silent = true, noremap = true }
+  local keymaps = config.options.keymaps
 
-      if keymaps.run then
-        vim.keymap.set("n", keymaps.run, "<cmd>XcedeRun<cr>", vim.tbl_extend("force", opts, { desc = "Run Project" }))
-      end
+  if keymaps.build then
+    vim.keymap.set("n", keymaps.build, "<cmd>XcedeBuild<cr>", vim.tbl_extend("force", opts, { desc = "Build Project" }))
+  end
 
-      if keymaps.buildrun then
-        vim.keymap.set("n", keymaps.buildrun, "<cmd>XcedeBuildRun<cr>", vim.tbl_extend("force", opts, { desc = "Build & Run Project" }))
-      end
+  if keymaps.run then
+    vim.keymap.set("n", keymaps.run, "<cmd>XcedeRun<cr>", vim.tbl_extend("force", opts, { desc = "Run Project" }))
+  end
 
-      if keymaps.test then
-        vim.keymap.set("n", keymaps.test, "<cmd>XcedeTest<cr>", vim.tbl_extend("force", opts, { desc = "Run Tests" }))
-      end
+  if keymaps.buildrun then
+    vim.keymap.set("n", keymaps.buildrun, "<cmd>XcedeBuildRun<cr>", vim.tbl_extend("force", opts, { desc = "Build & Run Project" }))
+  end
 
-      if keymaps.toggle_terminal then
-        vim.keymap.set("n", keymaps.toggle_terminal, "<cmd>XcedeToggleTerminal<cr>", vim.tbl_extend("force", opts, { desc = "Toggle Terminal" }))
-      end
+  if keymaps.test then
+    vim.keymap.set("n", keymaps.test, "<cmd>XcedeTest<cr>", vim.tbl_extend("force", opts, { desc = "Run Tests" }))
+  end
 
-      if keymaps.stop then
-        vim.keymap.set("n", keymaps.stop, "<cmd>XcedeStop<cr>", vim.tbl_extend("force", opts, { desc = "Stop Build/Run" }))
-      end
-    end,
-  })
+  if keymaps.toggle_terminal then
+    vim.keymap.set("n", keymaps.toggle_terminal, "<cmd>XcedeToggleTerminal<cr>", vim.tbl_extend("force", opts, { desc = "Toggle Terminal" }))
+  end
+
+  if keymaps.stop then
+    vim.keymap.set("n", keymaps.stop, "<cmd>XcedeStop<cr>", vim.tbl_extend("force", opts, { desc = "Stop Build/Run" }))
+  end
 end
 
 --- Setup syntax highlighting
