@@ -1,26 +1,31 @@
 # xcede.nvim
 
-Neovim plugin for building, running, and testing Xcode projects using [xcede](https://github.com/XcodeClub/xcede).
+Neovim plugin for building, running, and testing Xcode projects using [xcede](https://codeberg.org/luxmentis/xcede).
 
 This plugin brings the power of `xcede` to Neovim, allowing you to build and run iOS/macOS apps without leaving your editor.
 
 ## Features
 
-- 🏗️ Build Xcode projects and Swift packages
-- 🚀 Run apps on simulator, devices, and macOS
-- 🧪 Run tests
-- ⚡ Async execution with live output
-- 📊 Status line integration
-- 🎨 Syntax highlighting for build output
-- 🔧 Fully configurable keybindings
-- 💾 Auto-save before building
-- 🎯 Support for `.xcrc` configuration files (compatible with Zed editor)
+- Build Xcode projects and Swift packages
+- Run apps on simulator, devices, and macOS
+- Run tests
+- Async execution with live output
+- Status line integration
+- Syntax highlighting for build output
+- Fully configurable keybindings
+- Auto-save before building
+- Support for `.xcrc` configuration files (compatible with Zed editor)
+- Floating window for builds with auto-close on success
+- Progress notifications with fidget.nvim integration
+- Colorful terminal output with borders
 
 ## Requirements
 
 - Neovim >= 0.8.0
-- [xcede](https://github.com/XcodeClub/xcede) CLI tool
+- [xcede](https://codeberg.org/luxmentis/xcede) CLI tool
+- [xcode-build-server](https://github.com/SolaWing/xcode-build-server) - Required for LSP support (autocompletion, navigation) in Xcode projects
 - Optional: [xcbeautify](https://github.com/cpisciotta/xcbeautify) for prettier output
+- Optional: [fidget.nvim](https://github.com/j-hui/fidget.nvim) for progress notifications
 
 ## Installation
 
@@ -66,7 +71,8 @@ EOF
 require("xcede").setup({
   -- Terminal settings
   terminal_height = 15,
-  terminal_position = "botright", -- "botright", "topleft", "vertical"
+  terminal_position = "vertical", -- "botright", "topleft", "vertical"
+  use_floating_for_build = true, -- Use floating window for build (auto-close on success)
 
   -- Behavior
   auto_save = true, -- Auto-save all buffers before building
@@ -275,19 +281,33 @@ MIT
 
 ## Credits
 
-- [xcede](https://github.com/XcodeClub/xcede) - The underlying CLI tool
+- [xcede](https://codeberg.org/luxmentis/xcede) - The underlying CLI tool
 - Inspired by the [Zed editor's Xcode integration](https://www.artificialworlds.net/blog/2025/08/04/build-run-and-debug-ios-and-mac-apps-in-zed-instead-of-xcode/)
 
 ## Troubleshooting
 
 ### xcede not found
 
-Make sure `xcede` is installed and in your PATH:
+Make sure `xcede` is installed and in your PATH. Follow installation instructions from https://codeberg.org/luxmentis/xcede
 
-```bash
-brew install xcede
-# or follow installation instructions from https://github.com/XcodeClub/xcede
-```
+### No autocompletion or LSP support in Xcode projects
+
+You need to install and configure [xcode-build-server](https://github.com/SolaWing/xcode-build-server):
+
+1. Install xcode-build-server:
+   ```bash
+   brew install xcode-build-server
+   ```
+
+2. Generate buildServer.json in your project:
+   ```bash
+   cd /path/to/your/project
+   xcode-build-server config -project YourProject.xcodeproj -scheme YourScheme
+   ```
+
+3. Configure sourcekit-lsp in your Neovim LSP config to recognize buildServer.json
+
+See the [xcode-build-server documentation](https://github.com/SolaWing/xcode-build-server) for detailed setup instructions.
 
 ### Build output is hard to read
 
