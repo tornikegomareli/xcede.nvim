@@ -33,7 +33,7 @@ This plugin brings the power of `xcede` to Neovim, allowing you to build and run
 
 ```lua
 {
-  "yourusername/xcede.nvim",
+  "tornikegomareli/xcede.nvim",
   config = function()
     require("xcede").setup({
       -- your configuration here (optional)
@@ -46,7 +46,7 @@ This plugin brings the power of `xcede` to Neovim, allowing you to build and run
 
 ```lua
 use {
-  "yourusername/xcede.nvim",
+  "tornikegomareli/xcede.nvim",
   config = function()
     require("xcede").setup()
   end
@@ -56,7 +56,7 @@ use {
 ### Using [vim-plug](https://github.com/junegunn/vim-plug)
 
 ```vim
-Plug 'yourusername/xcede.nvim'
+Plug 'tornikegomareli/xcede.nvim'
 
 lua << EOF
 require("xcede").setup()
@@ -202,7 +202,7 @@ require("lualine").setup({
 
 ```lua
 {
-  "yourusername/xcede.nvim",
+  "tornikegomareli/xcede.nvim",
   config = function()
     require("xcede").setup()
   end,
@@ -213,7 +213,7 @@ require("lualine").setup({
 
 ```lua
 {
-  "yourusername/xcede.nvim",
+  "tornikegomareli/xcede.nvim",
   ft = { "swift" }, -- Lazy load on Swift files only
   config = function()
     require("xcede").setup({
@@ -237,7 +237,7 @@ require("lualine").setup({
 
 ```lua
 {
-  "yourusername/xcede.nvim",
+  "tornikegomareli/xcede.nvim",
   config = function()
     require("xcede").setup({
       keymaps = false, -- I'll set my own keybindings
