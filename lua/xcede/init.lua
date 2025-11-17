@@ -11,11 +11,58 @@ local M = {
 
 vim.g.xcede_status = "Idle"
 
---- Parse .xcrc config file
+--- Find project root by searching upwards for Xcode project markers
+--- @param start_path string|nil Starting path (defaults to cwd)
+--- @return string|nil Project root path or nil if not found
+local function find_project_root(start_path)
+  start_path = start_path or vim.fn.getcwd()
+  local path = start_path
+
+  -- Search upwards for project markers (max 10 levels up)
+  local max_depth = 10
+  local depth = 0
+
+  while path ~= "/" and depth < max_depth do
+    -- Check for Package.swift
+    if vim.fn.filereadable(path .. "/Package.swift") == 1 then
+      return path
+    end
+
+    -- Check for *.xcodeproj
+    local xcodeproj = vim.fn.glob(path .. "/*.xcodeproj")
+    if xcodeproj ~= "" then
+      return path
+    end
+
+    -- Check for *.xcworkspace
+    local xcworkspace = vim.fn.glob(path .. "/*.xcworkspace")
+    if xcworkspace ~= "" then
+      return path
+    end
+
+    -- Move up one directory
+    path = vim.fn.fnamemodify(path, ":h")
+    depth = depth + 1
+  end
+
+  return nil
+end
+
+--- Parse .xcrc config file (searches in project root)
 --- @return table config with scheme, platform, device fields
 local function parse_xcrc()
   local xcrc_config = {}
-  local config_paths = { ".xcrc", ".zed/xcrc" }
+
+  -- Find project root first
+  local project_root = find_project_root()
+  if not project_root then
+    return xcrc_config
+  end
+
+  local config_paths = {
+    project_root .. "/.xcrc",
+    project_root .. "/.zed/xcrc",
+  }
   local config_content = nil
 
   for _, path in ipairs(config_paths) do
@@ -72,6 +119,9 @@ local function build_command(cmd, use_beautify)
     use_beautify = true
   end
 
+  -- Find project root
+  local project_root = find_project_root()
+
   local parts = { "xcede", cmd }
 
   if M.parsed_config.scheme then
@@ -93,6 +143,11 @@ local function build_command(cmd, use_beautify)
 
   if use_beautify and config.options.xcbeautify and command_exists("xcbeautify") then
     command = "set -o pipefail; " .. command .. " | xcbeautify"
+  end
+
+  -- If project root is different from cwd, cd to it first
+  if project_root and project_root ~= vim.fn.getcwd() then
+    command = string.format("cd %s && %s", vim.fn.shellescape(project_root), command)
   end
 
   return command
@@ -704,26 +759,7 @@ end
 --- Check if current directory is an Xcode/Swift project
 --- @return boolean
 local function is_xcode_project()
-  local cwd = vim.fn.getcwd()
-
-  -- Check for Package.swift
-  if vim.fn.filereadable(cwd .. "/Package.swift") == 1 then
-    return true
-  end
-
-  -- Check for *.xcodeproj
-  local xcodeproj = vim.fn.glob(cwd .. "/*.xcodeproj")
-  if xcodeproj ~= "" then
-    return true
-  end
-
-  -- Check for *.xcworkspace
-  local xcworkspace = vim.fn.glob(cwd .. "/*.xcworkspace")
-  if xcworkspace ~= "" then
-    return true
-  end
-
-  return false
+  return find_project_root() ~= nil
 end
 
 --- Setup keymaps
